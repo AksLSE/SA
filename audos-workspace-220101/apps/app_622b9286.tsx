@@ -1081,7 +1081,7 @@ function Footer(): JSX.Element {
               </button>
             ))}
             <a href="/privacy">Privacy</a>
-            <span>Terms</span>
+            <a href="/terms-of-service">Terms</a>
           </div>
         </div>
         <p className="sa-copyright">
@@ -1447,12 +1447,258 @@ function PrivacyPolicy(): JSX.Element {
           <div className="sa-privacy-footer-links">
             <a href="/">Home</a>
             <a href="/privacy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+// === TERMS OF SERVICE (/terms) ===
+// Same constraint as the privacy view below: this file compiles as one
+// standalone module, so the terms copy is defined here rather than imported
+// from ../components/TermsPage. The wording is identical to that component.
+function getTermsSections(): Array<{ id: string; title: string; body: JSX.Element }> {
+  return [
+  {
+    id: "acceptance-of-these-terms",
+    title: "1. Acceptance of these Terms",
+    body: (
+      <>
+        <p>{"These Terms of Service (the “Terms”) govern your access to and use of Scout & Alma, including our websites, applications, artificial intelligence features, and related services (collectively, the “Service”). By accessing or using the Service, you agree to these Terms. If you do not agree, do not use the Service."}</p>
+        <p>{"If you use the Service on behalf of a university, company, or other organisation, you confirm that you have authority to bind that organisation to these Terms."}</p>
+      </>
+    ),
+  },
+  {
+    id: "who-may-use-the-service",
+    title: "2. Who may use the Service",
+    body: (
+      <>
+        <p>{"You must be legally able to enter into these Terms. If you are under the age at which you can consent to online services in your country, a parent or legal guardian must review and agree to these Terms for you."}</p>
+        <p>{"You must provide accurate information and keep your account credentials secure. You are responsible for activity under your account and must notify us promptly if you believe it has been accessed without permission."}</p>
+      </>
+    ),
+  },
+  {
+    id: "what-scout-alma-provides",
+    title: "3. What Scout & Alma provides",
+    body: (
+      <>
+        <p>{"Scout helps students explore and compare education opportunities. Alma helps universities identify and engage prospective students who may align with their programmes. Features may include conversational guidance, matching, shortlists, profile tools, surveys, and communications."}</p>
+        <p>{"The Service supports research and decision-making, but it does not provide legal, financial, immigration, admissions, or other professional advice. Matches, rankings, generated text, and other AI-assisted outputs may be incomplete or inaccurate and should be independently checked. We do not guarantee admission, enrolment, funding, recruitment outcomes, or that any institution or student will be a suitable match."}</p>
+      </>
+    ),
+  },
+  {
+    id: "acceptable-use",
+    title: "4. Acceptable use",
+    body: (
+      <>
+        <p>{"You may use the Service only for lawful purposes and in accordance with these Terms. You must not misuse the Service, interfere with its operation, attempt to gain unauthorised access, introduce malicious code, scrape or harvest data without permission, impersonate another person, infringe intellectual-property or privacy rights, submit deceptive information, or use the Service to discriminate unlawfully, harass, exploit, or harm others."}</p>
+        <p>{"Universities and other organisations are responsible for ensuring that their use of student information, outreach, selection processes, and communications complies with applicable privacy, equality, marketing, and education laws."}</p>
+      </>
+    ),
+  },
+  {
+    id: "your-content-and-data",
+    title: "5. Your content and data",
+    body: (
+      <>
+        <p>{"You retain ownership of information and materials you submit to the Service (“Your Content”). You grant us a worldwide, non-exclusive, royalty-free licence to host, process, reproduce, and display Your Content only as needed to operate, secure, improve, and provide the Service."}</p>
+        <p>{"You confirm that you have the rights and permissions needed to submit Your Content. Our collection and use of personal information is described in our Privacy Policy. Students control whether profile information is made available to universities where the Service offers that choice."}</p>
+      </>
+    ),
+  },
+  {
+    id: "our-content-and-intellectual-property",
+    title: "6. Our content and intellectual property",
+    body: (
+      <>
+        <p>{"The Service, including its software, design, branding, and content provided by Scout & Alma, is owned by us or our licensors and is protected by intellectual-property laws. Subject to these Terms, we grant you a limited, revocable, non-exclusive, non-transferable right to use the Service for its intended purpose."}</p>
+        <p>{"You may not copy, sell, sublicense, reverse engineer, or create derivative works from the Service except where applicable law expressly permits it. If you provide feedback, you allow us to use it without restriction or compensation."}</p>
+      </>
+    ),
+  },
+  {
+    id: "third-party-services-and-content",
+    title: "7. Third-party services and content",
+    body: (
+      <>
+        <p>{"The Service may link to or work with third-party websites, institutions, tools, and content. We do not control or endorse third-party services and are not responsible for their availability, accuracy, security, or practices. Your use of a third-party service may be governed by separate terms."}</p>
+      </>
+    ),
+  },
+  {
+    id: "paid-services",
+    title: "8. Paid services",
+    body: (
+      <>
+        <p>{"Some features may require payment. Before a purchase, we will show the applicable price, billing period, and material payment terms. You authorise the stated charges and are responsible for applicable taxes. Additional purchase, renewal, cancellation, or refund terms presented at checkout form part of these Terms."}</p>
+      </>
+    ),
+  },
+  {
+    id: "availability-changes-and-termination",
+    title: "9. Availability, changes, and termination",
+    body: (
+      <>
+        <p>{"We may update, suspend, or discontinue parts of the Service, including to maintain security, comply with law, or improve features. We do not promise that the Service will always be uninterrupted or error-free."}</p>
+        <p>{"You may stop using the Service at any time. We may restrict or terminate access if you materially breach these Terms, create risk or harm, or where required by law. Provisions that by their nature should survive termination will remain in effect."}</p>
+      </>
+    ),
+  },
+  {
+    id: "disclaimers",
+    title: "10. Disclaimers",
+    body: (
+      <>
+        <p>{"To the fullest extent permitted by law, the Service is provided “as is” and “as available”. We disclaim implied warranties, including merchantability, fitness for a particular purpose, non-infringement, and any warranty arising from course of dealing. Nothing in these Terms excludes rights or warranties that cannot legally be excluded."}</p>
+      </>
+    ),
+  },
+  {
+    id: "limitation-of-liability",
+    title: "11. Limitation of liability",
+    body: (
+      <>
+        <p>{"To the fullest extent permitted by law, Scout & Alma and its affiliates, officers, employees, and suppliers will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss of profits, revenue, data, goodwill, or opportunities arising from or related to the Service."}</p>
+        <p>{"Where liability cannot be excluded, our total liability for claims arising from or related to the Service will not exceed the greater of the amount you paid us for the Service in the 12 months before the event giving rise to the claim or £100. These limitations do not apply where prohibited by law, including liability that cannot lawfully be limited."}</p>
+      </>
+    ),
+  },
+  {
+    id: "changes-to-these-terms",
+    title: "12. Changes to these Terms",
+    body: (
+      <>
+        <p>{"We may update these Terms from time to time. We will post the revised Terms and update the effective date. If a change is material, we will provide reasonable notice where required. Continuing to use the Service after the revised Terms take effect means you accept them."}</p>
+      </>
+    ),
+  },
+  {
+    id: "general",
+    title: "13. General",
+    body: (
+      <>
+        <p>{"If any provision of these Terms is found unenforceable, the remaining provisions remain in effect. Our failure to enforce a provision is not a waiver. You may not transfer these Terms without our consent; we may transfer them as part of a reorganisation, financing, merger, acquisition, or sale of assets."}</p>
+        <p>{"These Terms, together with any additional terms presented for a specific feature or purchase, form the entire agreement between you and Scout & Alma concerning the Service."}</p>
+      </>
+    ),
+  },
+  {
+    id: "contact",
+    title: "14. Contact",
+    body: (
+      <>
+        <p>{"If you have questions about these Terms, contact Scout & Alma through the support channel provided in the Service."}</p>
+      </>
+    ),
+  },
+  ];
+}
+
+function TermsPolicy(): JSX.Element {
+  const termsSections = getTermsSections();
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+    const previous = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      rootOverflow: root ? root.style.overflow : '',
+      rootHeight: root ? root.style.height : '',
+      rootMaxHeight: root ? root.style.maxHeight : '',
+    };
+
+    document.title = `Terms of Service | ${WORKSPACE_BRAND_NAME}`;
+    html.style.overflow = 'auto';
+    body.style.overflow = 'auto';
+    body.style.position = 'static';
+    if (root) {
+      root.style.overflow = 'visible';
+      root.style.height = 'auto';
+      root.style.maxHeight = 'none';
+    }
+    window.scrollTo(0, 0);
+
+    return () => {
+      document.title = previousTitle;
+      html.style.overflow = previous.htmlOverflow;
+      body.style.overflow = previous.bodyOverflow;
+      body.style.position = previous.bodyPosition;
+      if (root) {
+        root.style.overflow = previous.rootOverflow;
+        root.style.height = previous.rootHeight;
+        root.style.maxHeight = previous.rootMaxHeight;
+      }
+    };
+  }, []);
+
+  return (
+    <div className="sa-privacy">
+      <style>{PRIVACY_STYLES}</style>
+
+      <header className="sa-privacy-header">
+        <div className="sa-privacy-shell sa-privacy-header-inner">
+          <a href="/" className="sa-privacy-brand" aria-label={`${WORKSPACE_BRAND_NAME} home`}>
+            <BrandMark size={28} />
+            <span>{WORKSPACE_BRAND_NAME}</span>
+          </a>
+          <a href="https://www.scoutandalma.com" className="sa-privacy-home">Back to home</a>
+        </div>
+      </header>
+
+      <main>
+        <section className="sa-privacy-hero">
+          <div className="sa-privacy-shell">
+            <p className="sa-privacy-eyebrow">{WORKSPACE_BRAND_NAME}</p>
+            <h1>Terms of Service</h1>
+            <p className="sa-privacy-lede">These Terms of Service (the &ldquo;Terms&rdquo;) govern your access to and use of Scout &amp; Alma, including our websites, applications, artificial intelligence features, and related services.</p>
+            <p className="sa-privacy-updated">Effective date: 2 September 2026</p>
+          </div>
+        </section>
+
+        <div className="sa-privacy-shell sa-privacy-body">
+          <nav className="sa-privacy-toc" aria-label="Terms of service sections">
+            <p className="sa-privacy-toc-title">On this page</p>
+            <div className="sa-privacy-toc-links">
+              {termsSections.map((section) => (
+                <a key={section.id} href={`#${section.id}`}>{section.title}</a>
+              ))}
+            </div>
+          </nav>
+
+          <article className="sa-privacy-card">
+            {termsSections.map((section) => (
+              <section key={section.id} id={section.id} className="sa-privacy-section">
+                <h2>{section.title}</h2>
+                <div className="sa-privacy-copy">{section.body}</div>
+              </section>
+            ))}
+          </article>
+        </div>
+      </main>
+
+      <footer className="sa-privacy-footer">
+        <div className="sa-privacy-shell sa-privacy-footer-inner">
+          <p>&copy; {new Date().getFullYear()} {WORKSPACE_BRAND_NAME}. All rights reserved.</p>
+          <div className="sa-privacy-footer-links">
+            <a href="/">Home</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms-of-service">Terms</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 
 // === ROUTING ===
 // The marketing host serves this bundle for every pathname, so the /privacy
@@ -1470,6 +1716,18 @@ function isPrivacyRoute(route: string): boolean {
   return route === '/privacy' || route.endsWith('/privacy');
 }
 
+// The marketing host reserves /terms for its own platform legal page and
+// redirects it off-site, so the footer links to /terms-of-service instead.
+// /terms is still matched here so old links and the hash form keep working.
+function isTermsRoute(route: string): boolean {
+  return (
+    route === '/terms-of-service' ||
+    route.endsWith('/terms-of-service') ||
+    route === '/terms' ||
+    route.endsWith('/terms')
+  );
+}
+
 export default function RoutedLandingPage(): JSX.Element {
   const [route, setRoute] = useState(currentRoute);
 
@@ -1484,6 +1742,7 @@ export default function RoutedLandingPage(): JSX.Element {
   }, []);
 
   if (isPrivacyRoute(route)) return <PrivacyPolicy />;
+  if (isTermsRoute(route)) return <TermsPolicy />;
   return <LandingPageComponent />;
 }
 
