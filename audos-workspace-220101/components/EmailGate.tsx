@@ -241,8 +241,11 @@ function isCredentialRejection(
 ): boolean {
   const hasError = typeof body.error === 'string' && body.error.trim().length > 0;
   if (body.success === false || hasError) return true;
-  if (authMode === 'signup' && body.isReturningUser === true) return true;
-  if (authMode === 'login' && body.isReturningUser === false) return true;
+  // NOTE: deliberately does NOT reject on `isReturningUser`. The space register
+  // endpoint returns isReturningUser: true for every address, including ones
+  // that have never been seen, so treating it as a rejection on signup made
+  // account creation impossible ("An account already exists for this email")
+  // for every new visitor. Identity is proven by the OTP step that follows.
   return false;
 }
 
