@@ -450,8 +450,10 @@ export default function ScoutChat() {
         result = await runAgentTurn(userContent, attachmentNote, deps);
       } catch (error) {
         if (!isAgentApiError(error)) throw error;
-        const connectionMessage =
-          'It looks like there was a connection issue — please check your internet and try sending your answer again.';
+        const timedOut = error.kind === 'timeout';
+        const connectionMessage = timedOut
+          ? "That search took longer than I can wait for, so it didn't finish — nothing wrong at your end. Say \"try again\" and I'll re-run it."
+          : 'It looks like there was a connection issue — please check your internet and try sending your answer again.';
         retryTextRef.current = userContent;
         setDraft(userContent);
         appendLocalMessage({ role: 'assistant', content: connectionMessage, actions: preLines });

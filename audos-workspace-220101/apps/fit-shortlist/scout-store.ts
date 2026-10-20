@@ -155,29 +155,56 @@ export interface SearchHit {
   snippet?: string;
 }
 
-export async function webSearch(query: string, num = 8): Promise<SearchHit[]> {
+const SEARCH_TIMEOUT_MS = 60_000;
+const SEARCH_ATTEMPTS = 2;
+
+function isAbortError(error: unknown): boolean {
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    (error as { name?: unknown }).name === 'AbortError'
+  );
+}
+
+async function webSearchOnce(query: string, num: number): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 30_000);
-  let res: Response;
+  const timeoutId = window.setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
   try {
-    res = await fetch('/api/search', {
+    return await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({ query, searchType: 'web', num, language: 'en' }),
     });
-  } catch (error) {
-    const timedOut =
-      !!error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      (error as { name?: unknown }).name === 'AbortError';
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+export async function webSearch(query: string, num = 8): Promise<SearchHit[]> {
+  // Searches behind a live programme search regularly take 15-30s, and the old
+  // single 30s attempt failed the whole turn on the slowest one. Retry once
+  // with a longer cap before giving up.
+  let lastError: unknown = null;
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < SEARCH_ATTEMPTS; attempt += 1) {
+    try {
+      res = await webSearchOnce(query, num);
+      lastError = null;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (!isAbortError(error)) break;
+    }
+  }
+
+  if (!res) {
+    const timedOut = isAbortError(lastError);
     throw new AgentApiError(
       timedOut ? 'timeout' : 'network',
       timedOut ? 'The search request timed out.' : 'The search service could not be reached.'
     );
-  } finally {
-    window.clearTimeout(timeoutId);
   }
 
   const data = await res.json().catch(() => null);
