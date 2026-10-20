@@ -6,7 +6,7 @@ import TermsPage from './TermsPage';
 
 // Version marker for auto-upgrade detection
 // Increment this when making breaking changes that stale copies need
-export const EMAIL_GATE_VERSION = 135; // v135: require work or institutional email for Alma authentication
+export const EMAIL_GATE_VERSION = 136; // v136: allow the founder’s Gmail address to authenticate with Alma
 
 const LANDING_CRITICAL_STYLE_ID = 'scout-alma-critical-paint';
 const LANDING_CRITICAL_CSS = `
@@ -352,6 +352,10 @@ const WAITLIST_TAG_BY_ROLE: Record<WaitlistRole, string> = {
 };
 
 const VALID_WAITLIST_ROLES = new Set<string>(Object.keys(WAITLIST_TAG_BY_ROLE));
+
+const ALMA_PERSONAL_EMAIL_ALLOWLIST = new Set([
+  'aks255225@gmail.com',
+]);
 
 const PERSONAL_EMAIL_DOMAINS = new Set([
   'gmail.com',
@@ -1007,7 +1011,13 @@ export default function EmailGate({
       return;
     }
 
-    if ((role === 'university' || role === 'company') && isPersonalEmailAddress(email)) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const isAllowedAlmaPersonalEmail = ALMA_PERSONAL_EMAIL_ALLOWLIST.has(normalizedEmail);
+    if (
+      (role === 'university' || role === 'company') &&
+      isPersonalEmailAddress(normalizedEmail) &&
+      !isAllowedAlmaPersonalEmail
+    ) {
       setError('Please sign in with your work or institutional email address.');
       return;
     }

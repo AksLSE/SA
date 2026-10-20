@@ -1054,7 +1054,7 @@ function FaqSection(): JSX.Element {
 
 function Footer(): JSX.Element {
   return (
-    <footer className="sa-footer" data-sync-probe="lp-resync-20261020">
+    <footer className="sa-footer">
       <div className="sa-shell">
         <div className="sa-footer-top">
           <div>
@@ -1081,7 +1081,7 @@ function Footer(): JSX.Element {
               </button>
             ))}
             <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
+            <span>Terms</span>
           </div>
         </div>
         <p className="sa-copyright">
