@@ -1054,7 +1054,7 @@ function FaqSection(): JSX.Element {
 
 function Footer(): JSX.Element {
   return (
-    <footer className="sa-footer" data-sync-probe="lp">
+    <footer className="sa-footer" data-sync-probe="lp-resync-20261020">
       <div className="sa-shell">
         <div className="sa-footer-top">
           <div>
