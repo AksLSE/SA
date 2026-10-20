@@ -1081,7 +1081,7 @@ function Footer(): JSX.Element {
               </button>
             ))}
             <a href="/privacy">Privacy</a>
-            <span>Terms</span>
+            <a href="/terms">Terms</a>
           </div>
         </div>
         <p className="sa-copyright">
