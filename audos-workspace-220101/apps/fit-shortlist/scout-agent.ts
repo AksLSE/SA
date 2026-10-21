@@ -948,10 +948,12 @@ async function applyStateCapture(cap: CapturedState, deps: AgentDeps, turn: Turn
 // Turn-level intent helpers
 
 function wantsProgramSearch(userText: string): boolean {
+  // British spellings ("programmes", "courses") are what the UI's own quick
+  // prompt sends, so the noun pattern must accept the -mme/-ses forms too.
   const text = userText.toLowerCase();
   return (
     /\b(find|search|recommend|suggest|show|look for|gather)\b/.test(text) &&
-    /\b(program|programs|course|courses|degree|degrees|universit|college|school|options|opportunities)\b/.test(text)
+    /\b(program(me)?s?|course(s)?|degree(s)?|universit(y|ies)|college(s)?|school(s)?|options|opportunities)\b/.test(text)
   );
 }
 
@@ -1240,8 +1242,14 @@ export async function runAgentTurn(userText: string, attachmentNote: string, dep
     turn.intakeCompletedThisTurn ||
     (!!deps.retryingConnectionIssue && intakeReady && !hasActivePrograms) ||
     (prefsChanged && readiness.ok && (hasActivePrograms || haveCoreFour(deps)));
+  // "Find more programmes" is a direct request for results. If the student asks
+  // for a search explicitly, run it on the criteria already known instead of
+  // bouncing them back to the outstanding intake question, then continue the
+  // intake afterwards.
+  const searchHasEnough =
+    !!knownMajors(deps) && !!knownLevel(deps) && !!knownLocations(deps);
   if (!turn.searchRan && (searchAsked || autoSearch)) {
-    if (intakeReady) {
+    if (intakeReady || (searchAsked && searchHasEnough)) {
       deps.setWorking('Searching official university sites…');
       const result = await discoverPrograms(
         cap?.searchCriteria || {},
@@ -1255,7 +1263,9 @@ export async function runAgentTurn(userText: string, attachmentNote: string, dep
           `Searched the web and added ${result.added} new program${result.added === 1 ? '' : 's'} to your Recommendations${result.caveat ? ` — ${result.caveat}` : ''}`
         );
         notes.push(
-          `A live web search JUST COMPLETED and added ${result.added} new program(s) to the student's Recommendations (right panel). ${result.caveat ? `Required caveat: ${result.caveat}` : 'The programs were grounded in official university sources.'} Report this in past tense and invite them to review — do not say a search is starting.`
+          `A live web search JUST COMPLETED and added ${result.added} new program(s) to the student's Recommendations (right panel). ${result.caveat ? `Required caveat: ${result.caveat}` : 'The programs were grounded in official university sources.'} Report this in past tense and invite them to review — do not say a search is starting.${
+            intakeReady ? '' : ' The search setup is still incomplete: after reporting the results, ask exactly the next unanswered question.'
+          }`
         );
       } else {
         actionLines.push(`Searched the web — no new matching programs found${result.reason ? ` (${result.reason})` : ''}`);
