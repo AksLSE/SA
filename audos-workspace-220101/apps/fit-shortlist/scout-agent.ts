@@ -187,7 +187,8 @@ CRITICAL RULES:
 - ONE QUESTION AT A TIME. Work through the intake checklist below in order, weaving exactly one unanswered question naturally into each reply (after addressing whatever the student said). NEVER re-ask an ANSWERED question — a changed answer (e.g. new budget) does not reset the checklist; continue from the next UNANSWERED question only.
 - The "motivations" question is ONLY for students interested in graduate programs. Skip it for undergraduates.
 - CLARIFY BEFORE ACTING. If a requested action is ambiguous (e.g. "remove a skill" without naming it, or a program reference that matches nothing in PROGRAMS), ask a clarifying question and emit NO action for it.
-- NEVER emit search_programs while the INTAKE CHECKLIST STATE has a NEXT QUESTION TO ASK. Program search is blocked until the checklist says CHECKLIST COMPLETE. The system automatically searches as soon as the final required answer completes intake. While intake is incomplete, ask exactly the next unanswered question and do not say a search is running, starting, or coming later.
+- NEVER emit search_programs while the INTAKE CHECKLIST STATE has a NEXT QUESTION TO ASK, unless the student explicitly asked you to find or search for programs in THIS message — the system runs that search itself, so never emit the action for it. Program search is otherwise blocked until the checklist says CHECKLIST COMPLETE. The system automatically searches as soon as the final required answer completes intake. Never say a search is running, starting, or coming later.
+- ANSWER FIRST, THEN INTAKE. When the student asks about their shortlist, their profile, their recommendations, or anything else, answer that fully and concretely from the state below BEFORE weaving in the next intake question. The intake question is never a substitute for answering: an unanswered question from the student is a failure even if the next checklist question was asked. Only when the message is purely an intake answer do you simply acknowledge and ask the next question.
 - After the checklist is complete, the system usually runs requested searches before you reply (see system notes). Only emit search_programs if the checklist is complete, no search ran this turn, and the student clearly wants another search.
 - RESUME ACCESS: if a RESUME ON FILE section appears below, you have the resume's full text — answer questions about it directly and NEVER say you cannot access the resume. Profile updates from the resume happen automatically; if the student says their profile is incomplete, the system re-parses the resume this turn (see system notes) — report what was filled in.
 - If CURRENT PROFILE shows a completed or in-progress master's, MBA, MPhil, doctorate, or other postgraduate education, treat the student as looking for graduate/postgraduate opportunities unless they explicitly ask for a bachelor's/undergraduate search.
@@ -957,6 +958,45 @@ function wantsProgramSearch(userText: string): boolean {
   );
 }
 
+// The chat's quick-prompt buttons are sent as literal message text, so match
+// their exact wording instead of guessing intent from loose keywords. Anything
+// else the student types goes down the normal free-text path untouched.
+type QuickIntent = 'search' | 'prefs' | 'shortlist' | 'profile' | null;
+
+function quickPromptIntent(userText: string): QuickIntent {
+  const t = userText.trim().toLowerCase().replace(/[.!?]+$/, '');
+  if (t === 'find more programmes' || t === 'find more programs') return 'search';
+  if (t === 'update my preferences' || t === 'update my preference') return 'prefs';
+  if (t === 'review my shortlist') return 'shortlist';
+  if (t === 'help with my profile' || t === 'help me with my profile') return 'profile';
+  return null;
+}
+
+const BOARD_LABELS: Record<string, string> = {
+  dream: 'Dream',
+  target: 'Target',
+  safe: 'Safe',
+  saved: 'Saved',
+};
+
+// Determinstic shortlist summary, so a review the student asked for reports the
+// real contents instead of whatever the model remembers.
+function summarizeShortlist(programs: ProgramRow[]): { summary: string; count: number } {
+  const columns = ['dream', 'target', 'safe', 'saved'];
+  const rows: string[] = [];
+  let count = 0;
+  for (const column of columns) {
+    const items = programs.filter((p) => p.status === column);
+    count += items.length;
+    rows.push(
+      `${BOARD_LABELS[column]}: ${
+        items.length ? items.map((p) => `${p.university} — ${p.program_name}`).join('; ') : '(empty)'
+      }`
+    );
+  }
+  return { summary: rows.join('\n'), count };
+}
+
 function wantsResumeRebuild(userText: string): boolean {
   const text = userText.toLowerCase();
   if (!/\b(resume|cv)\b/.test(text) && !/\bprofile\b/.test(text)) return false;
@@ -1157,6 +1197,7 @@ export async function runAgentTurn(userText: string, attachmentNote: string, dep
   turn.resumeParsed = /parsed as a resume/i.test(attachmentNote);
   const actionLines: string[] = [];
   const notes: string[] = [];
+  const quick = quickPromptIntent(userText);
 
   // For clearly informational turns, overlap the reply request with the
   // deterministic capture request. If capture discovers any side effect, the
@@ -1189,7 +1230,7 @@ export async function runAgentTurn(userText: string, attachmentNote: string, dep
   }
 
   // 2) Resume → profile rebuild, run deterministically when asked or complained about.
-  if ((cap?.wantsProfileRebuild || wantsResumeRebuild(userText)) && !turn.resumeParsed) {
+  if ((cap?.wantsProfileRebuild || wantsResumeRebuild(userText) || quick === 'profile') && !turn.resumeParsed) {
     const doc = latestResumeDoc(deps.documents);
     if (doc?.url) {
       deps.setWorking(`Re-reading ${doc.name}…`);
@@ -1210,8 +1251,38 @@ export async function runAgentTurn(userText: string, attachmentNote: string, dep
       } else {
         notes.push(`You tried to re-read ${doc.name}, but resume processing failed: ${result.error}. Ask the student to re-upload it.`);
       }
+    } else if (quick === 'profile') {
+      notes.push(
+        `The student asked for help with their profile and there is no resume on file to rebuild it from. Work only from CURRENT PROFILE below: say what is filled in and name the sections that are blank, point them at the Profile tab to fill them in, and invite them to attach a resume/CV PDF here if they have one. Never imply you read a resume.`
+      );
     } else {
       notes.push('The student references a resume but none is on file. Ask them to attach their resume PDF here in chat.');
+    }
+  }
+
+  // 2b) Quick-prompt buttons with no deterministic action behind them still get
+  //     real state, so the reply answers the button instead of guessing or, worse,
+  //     falling back to the next intake question.
+  if (quick === 'prefs') {
+    const current = [
+      knownMajors(deps) ? `subjects: ${knownMajors(deps)}` : 'subjects: not set',
+      knownLevel(deps) ? `level: ${knownLevel(deps)}` : 'level: not set',
+      knownLocations(deps) ? `locations: ${knownLocations(deps)}` : 'locations: not set',
+    ].join('; ');
+    notes.push(
+      `The student wants to change their preferences. On file right now — ${current}. Play that back in one or two lines, then ask which ONE they want to change (or invite them to just say it). Do not re-ask an intake question on this turn, and never say a preference change is saved before the student has actually stated the change.`
+    );
+  }
+  if (quick === 'shortlist') {
+    const { summary, count } = summarizeShortlist(deps.programs);
+    if (count === 0) {
+      notes.push(
+        `The student asked to review their shortlist and it is EMPTY — nothing has been added to any column yet. Say so plainly, tell them they can add programs from their Recommendations (right panel), and offer to search if Recommendations is empty too. Never imply programs they do not have.`
+      );
+    } else {
+      notes.push(
+        `The student asked to review their shortlist. Its real contents are:\n${summary}\nReview it against their search brief and preferences: name what sits in each column, point out concrete gaps (an empty Dream or Target column, a Safe column carrying everything, programs that no longer match their budget or locations), and suggest the single most useful next move. Never name a program that is not listed above.`
+      );
     }
   }
 
